@@ -1,0 +1,33 @@
+[package]
+name = "fast-avatar-ai"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[build-dependencies]
+tauri-build = { version = "=2.5.6", features = [] }
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.7", features = ["json", "http1", "ws"] }
+base64 = "0.22"
+bytes = "1"
+futures-util = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+rfd = "0.15"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sherpa-rs = { version = "0.6.8", default-features = false, features = ["download-binaries", "tts"] }
+sherpa-rs-sys = { version = "0.6.8", default-features = false, features = ["download-binaries", "tts"] }
+tauri = { version = "=2.10.3", features = ["tray-icon", "devtools"] }
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+tower-http = { version = "0.6", features = ["fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+url = "2"
+wry = { version = "0.54.4", features = ["transparent"] }
+
+[patch.crates-io]
+toml_writer = { path = "vendor/toml_writer" }

@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/sync-assets.mjs"
+  },
+  "dependencies": {
+    "@naari3/pixi-live2d-display": "^1.2.5",
+    "pixi.js": "^8.12.0"
+  }
+}

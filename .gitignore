@@ -1,0 +1,65 @@
+# Node / frontend
+node_modules/
+
+# Rust / Tauri build outputs
+target/
+src-tauri/target/
+
+# Tauri local runtime data
+.tauri/
+src-tauri/gen/
+
+# Local runtime and temporary directories
+.runtime/
+.runtime-data/
+.tmp_core5/
+.tmp_naari3/
+.tmp_pixi8/
+tmp/
+temp/
+
+# Logs
+logs/
+*.log
+*.tmp
+*.cache
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Generated archives / installers
+*.exe
+*.msi
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+
+# Environment files
+.env
+.env.*
+
+# Local model payloads (keep docs only, do not commit large binaries)
+models/**
+!models/
+!models/README.md
+resources/models/**
+!resources/models/
+!resources/models/README.md

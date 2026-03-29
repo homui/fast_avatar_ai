@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FastAvatarAI",
+  "version": "0.1.0",
+  "identifier": "com.fastavatar.ai",
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devUrl": "http://127.0.0.1:3217",
+    "frontendDist": "../web"
+  },
+  "app": {
+    "security": {
+      "csp": null
+    },
+    "windows": []
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "msi"
+    ],
+    "icon": [
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "../web",
+      "../config",
+      "../live2d",
+      "../scripts",
+      "../resources/models"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      },
+      "wix": {
+        "language": "zh-CN"
+      }
+    }
+  },
+  "plugins": {}
+}

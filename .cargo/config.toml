@@ -1,0 +1,11 @@
+[source.crates-io]
+replace-with = "ustc"
+
+[source.ustc]
+registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
+
+[registries.ustc]
+index = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
+
+[env]
+LIBCLANG_PATH = "C:\\Users\\xar\\miniconda3\\Lib\\site-packages\\clang\\native"

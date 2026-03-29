@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffd4e8" />
+    <title>Fast Avatar AI</title>
+    <link rel="icon" href="/assets/avatar-default.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="desktop-shell">
+      <section class="avatar-stage" id="avatar-shell" aria-label="Live2D 桌面助手">
+        <div class="stage-frame">
+          <div class="avatar-hit-area" id="avatar-hit-area" aria-hidden="true"></div>
+          <canvas id="avatar-canvas" aria-label="Live2D 头像"></canvas>
+          <div class="avatar-zoom-hint">滚轮缩放</div>
+        </div>
+      </section>
+
+      <section class="boot-dock" id="boot-dock" aria-live="polite">
+        <div class="boot-dock__eyebrow">Fast Avatar AI</div>
+        <strong class="boot-dock__title">桌面助手已启动</strong>
+        <p class="boot-dock__status" id="boot-dock-status">
+          如果头像暂时没有出现，可以先打开设置检查模型和语音路径。
+        </p>
+        <div class="boot-dock__actions">
+          <button
+            type="button"
+            class="primary-button"
+            onclick="window.fastAvatarOpenSettings ? window.fastAvatarOpenSettings() : (document.getElementById('settings-screen')?.setAttribute('data-open','true'), document.getElementById('settings-screen')?.setAttribute('aria-hidden','false'))"
+          >
+            打开设置
+          </button>
+          <button type="button" class="ghost-button" onclick="window.location.reload()">重新加载</button>
+        </div>
+      </section>
+
+      <div class="status-strip" aria-hidden="true" hidden>
+        <span id="avatar-state"></span>
+        <span id="backend-status"></span>
+        <span id="llm-status"></span>
+        <span id="tts-status"></span>
+      </div>
+
+      <div class="chat-layer" id="chat-layer" data-open="false" aria-hidden="true">
+        <section class="panel chat-popover" id="chat-panel" role="dialog" aria-modal="false" aria-label="聊天窗口">
+          <header class="chat-hero">
+            <div class="hero-side">
+              <div class="chat-avatar" aria-hidden="true">
+                <img id="chat-avatar-thumb" src="/assets/avatar-default.png" alt="头像预览" />
+              </div>
+              <div class="chat-title-block">
+                <strong class="chat-title" id="chat-title">桃濑日和</strong>
+                <span class="chat-mini-state">在线</span>
+              </div>
+              <button type="button" class="chat-close" id="close-chat" aria-label="关闭聊天">×</button>
+            </div>
+          </header>
+
+          <section class="messages" id="messages" aria-live="polite" aria-relevant="additions text"></section>
+
+          <form class="composer" id="composer">
+            <textarea id="message-input" rows="2" placeholder="输入消息，按回车发送"></textarea>
+            <div class="composer-actions">
+              <button type="button" class="ghost-button compact-action" id="mic-button">语音输入</button>
+              <button type="button" class="ghost-button compact-action" id="stop-button">停止</button>
+              <button type="submit" class="primary-button">发送</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="settings-screen" id="settings-screen" data-open="false" aria-hidden="true">
+        <div class="settings-backdrop" id="settings-backdrop"></div>
+        <article class="settings-window" role="dialog" aria-modal="true" aria-label="应用设置">
+          <header class="settings-topbar">
+            <button type="button" class="settings-back" id="settings-back" aria-label="返回">←</button>
+            <div class="settings-heading">
+              <h1>设置</h1>
+              <p>管理模型、实时语音、头像资源和系统提示词。</p>
+            </div>
+          </header>
+
+          <div class="settings-scroll">
+            <section class="settings-section">
+              <div class="section-label">
+                <span>大语言模型</span>
+                <small>可选 Ollama、兼容 OpenAI 的接口，或演示模式。</small>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>提供方</strong>
+                  <span>选择聊天后端。</span>
+                </div>
+                <select id="llm-provider">
+                  <option value="ollama">Ollama（本地）</option>
+                  <option value="openai_compat">OpenAI 兼容接口</option>
+                  <option value="mock">模拟 / 演示</option>
+                </select>
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>接口地址</strong>
+                  <span>本地或远程聊天接口地址。</span>
+                </div>
+                <input id="llm-endpoint" type="text" placeholder="http://127.0.0.1:11434/api/chat" />
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>模型</strong>
+                  <span>例如 <code>qwen3:4b</code>。</span>
+                </div>
+                <input id="llm-model" type="text" placeholder="qwen3:4b" />
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>API Key</strong>
+                  <span>OpenAI 兼容接口需要时会以 <code>Authorization: Bearer</code> 发送。</span>
+                </div>
+                <input id="llm-api-key" type="password" placeholder="sk-..." autocomplete="off" />
+              </label>
+
+              <div class="settings-inline-grid">
+                <label class="setting-card">
+                  <span>温度</span>
+                  <input id="llm-temperature" type="number" min="0" max="2" step="0.05" />
+                </label>
+
+                <label class="setting-card">
+                  <span>最大 Tokens</span>
+                  <select id="llm-max-tokens">
+                    <option value="256">256</option>
+                    <option value="512">512</option>
+                    <option value="1024">1024</option>
+                  </select>
+                </label>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>上下文长度</strong>
+                  <span>控制单次对话可使用的上下文窗口范围。</span>
+                </div>
+                <select id="llm-context-length">
+                  <option value="4096">4k</option>
+                  <option value="8192">8k</option>
+                  <option value="16384">16k</option>
+                  <option value="32768">32k</option>
+                </select>
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <div class="section-label">
+                <span>实时语音识别</span>
+                <small>低延迟语音对话使用本地 ASR + VAD，打包后可与 exe 一起运行。</small>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>ASR 引擎</strong>
+                  <span>当前支持本地 sherpa 识别引擎。</span>
+                </div>
+                <select id="asr-engine">
+                  <option value="zipformer_ctc">Streaming Zipformer CTC</option>
+                </select>
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>ASR 模型目录</strong>
+                  <span>目录内需包含 <code>model.onnx</code> 或 <code>model.int8.onnx</code> 以及 <code>tokens.txt</code>。</span>
+                </div>
+                <input id="asr-model-dir" type="text" placeholder="models/asr/sherpa-onnx-streaming-zipformer-ctc-zh-int8-2025-06-30" />
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>VAD 模型</strong>
+                  <span>用于实时断句，默认使用 <code>silero_vad.int8.onnx</code>。</span>
+                </div>
+                <input id="asr-vad-model" type="text" placeholder="models/vad/silero_vad.int8.onnx" />
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>识别语言</strong>
+                  <span>默认自动识别，中文桌宠建议保留 <code>auto</code>。</span>
+                </div>
+                <input id="asr-language" type="text" placeholder="auto" />
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <div class="section-label">
+                <span>本地语音合成</span>
+                <small>本地 sherpa TTS 直接在 Rust 进程内运行，避免外部 sidecar 的额外延迟。</small>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>TTS 引擎</strong>
+                  <span>可在本地 VITS、Kokoro 和 Matcha 之间切换。</span>
+                </div>
+                <select id="tts-engine">
+                  <option value="sherpa_vits">Sherpa VITS</option>
+                  <option value="qwen_realtime">Qwen TTS Realtime</option>
+                </select>
+              </label>
+
+              <label class="setting-row" id="tts-model-dir-row">
+                <div class="setting-copy">
+                  <strong>TTS 模型目录</strong>
+                  <span>目录内需包含模型及对应的 tokens、lexicon、data、dict 等文件。</span>
+                </div>
+                <input id="tts-model-dir" type="text" placeholder="models/tts/sherpa-onnx-vits-zh-ll" />
+              </label>
+
+              <label class="setting-row" id="tts-qwen-endpoint-row">
+                <div class="setting-copy">
+                  <strong>Qwen Endpoint</strong>
+                  <span>在线实时语音合成使用 DashScope WebSocket 地址。</span>
+                </div>
+                <input id="tts-endpoint" type="text" placeholder="wss://dashscope.aliyuncs.com/api-ws/v1/realtime" />
+              </label>
+
+              <label class="setting-row" id="tts-qwen-api-key-row">
+                <div class="setting-copy">
+                  <strong>Qwen API Key</strong>
+                  <span>通过 <code>Authorization: Bearer</code> 发送到 DashScope。</span>
+                </div>
+                <input id="tts-api-key" type="password" placeholder="sk-..." autocomplete="off" />
+              </label>
+
+              <div class="settings-inline-grid" id="tts-qwen-session-grid">
+                <label class="setting-card">
+                  <span>Qwen 模型</span>
+                  <input id="tts-model" type="text" placeholder="qwen-tts-realtime-latest" />
+                </label>
+
+                <label class="setting-card">
+                  <span>输入模式</span>
+                  <select id="tts-mode">
+                    <option value="server_commit">server_commit</option>
+                    <option value="commit">commit</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="settings-inline-grid" id="tts-voice-grid">
+                <label class="setting-card">
+                  <span>语言</span>
+                  <input id="tts-language" type="text" placeholder="zh" />
+                </label>
+
+                <label class="setting-card">
+                  <span>音色</span>
+                  <input id="tts-voice" type="text" placeholder="xiaoyou" list="qwen-tts-voice-options" />
+                  <datalist id="qwen-tts-voice-options">
+                    <option value="Chelsie">千雪</option>
+                    <option value="Cherry">芊悦</option>
+                    <option value="Serena">苏瑶</option>
+                    <option value="Ethan">晨煦</option>
+                  </datalist>
+                </label>
+              </div>
+
+              <div class="settings-inline-grid" id="tts-local-engine-grid">
+                <label class="setting-card">
+                  <span>Speaker ID</span>
+                  <input id="tts-speaker-id" type="number" min="0" step="1" placeholder="0" />
+                </label>
+
+                <label class="setting-card">
+                  <span>速度</span>
+                  <input id="tts-speed" type="number" min="0.5" max="2" step="0.05" placeholder="1.0" />
+                </label>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>输出格式</strong>
+                  <span>低延迟模式推荐保持 PCM 直出。</span>
+                </div>
+                <select id="tts-format">
+                  <option value="pcm_s16le">pcm_s16le</option>
+                  <option value="wav">wav</option>
+                </select>
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <div class="section-label">
+                <span>会话记忆</span>
+                <small>默认启用临时记忆模块，仅在本次启动有效，后续可以直接替换为其他 provider。</small>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>启用记忆</strong>
+                  <span>关闭后不会向模型注入任何记忆摘要。</span>
+                </div>
+                <input id="memory-enabled" type="checkbox" checked />
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>记忆 Provider</strong>
+                  <span>当前默认只保存在内存中的会话记忆。</span>
+                </div>
+                <select id="memory-provider">
+                  <option value="session_ephemeral">Session Ephemeral</option>
+                </select>
+              </label>
+
+              <div class="settings-inline-grid">
+                <label class="setting-card">
+                  <span>最大条数</span>
+                  <input id="memory-max-items" type="number" min="1" max="64" step="1" placeholder="12" />
+                </label>
+
+                <label class="setting-card">
+                  <span>保留小时</span>
+                  <input id="memory-ttl-hours" type="number" min="1" max="24" step="1" placeholder="24" />
+                </label>
+              </div>
+            </section>
+
+            <section class="settings-section">
+              <div class="section-label">
+                <span>头像与提示词</span>
+                <small>管理当前角色、模型路径和系统提示词。</small>
+              </div>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>角色</strong>
+                  <span>选择当前 Live2D 头像。</span>
+                </div>
+                <select id="character-profile"></select>
+              </label>
+
+              <label class="setting-row">
+                <div class="setting-copy">
+                  <strong>Avatar Model URL</strong>
+                  <span>优先填写本机绝对路径，也支持 <code>file:///</code> 或 <code>/live2d/...</code> 路径。</span>
+                </div>
+                <input
+                  id="avatar-model-url"
+                  type="text"
+                  placeholder="D:\\live2d\\hiyori_free_zh\\runtime\\hiyori_free_t08.model3.json"
+                />
+              </label>
+
+              <label class="setting-row prompt-row">
+                <div class="setting-copy">
+                  <strong>系统提示词</strong>
+                  <span>直接写入配置文件，并作为当前角色的实际 system prompt。</span>
+                </div>
+                <textarea id="persona-prompt" rows="8" placeholder="输入当前角色的系统提示词"></textarea>
+              </label>
+
+              <div class="setting-row config-row">
+                <div class="setting-copy">
+                  <strong>配置文件</strong>
+                  <span>可以直接打开配置目录，手动编辑运行时设置和角色文件。</span>
+                </div>
+                <div class="config-field">
+                  <input id="config-path" type="text" readonly />
+                  <button type="button" class="ghost-button" id="import-character-model">导入模型</button>
+                  <button type="button" class="ghost-button" id="open-config-file">打开目录</button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <footer class="settings-footer">
+            <div class="settings-footer-note">运行时设置和角色目录会写入应用数据目录，便于打包后独立运行。</div>
+            <div class="settings-actions">
+              <button type="button" class="ghost-button" id="reload-avatar">重载头像</button>
+              <button type="button" class="ghost-button" id="reset-settings">重置</button>
+              <button type="button" class="primary-button" id="save-settings">保存</button>
+            </div>
+          </footer>
+        </article>
+      </section>
+    </main>
+
+    <script defer src="/vendor/pixi.min.js?v=cubism5-runtime-20260327-r7"></script>
+    <script defer src="/vendor/live2dcubismcore.min.js?v=cubism5-runtime-20260327-r7"></script>
+    <script defer src="/vendor/pixi-live2d-display.min.js?v=cubism5-runtime-20260327-r7"></script>
+    <script defer src="/memory.js?v=cubism5-runtime-20260327-r7"></script>
+    <script defer src="/main.js?v=cubism5-runtime-20260327-r7"></script>
+  </body>
+</html>
