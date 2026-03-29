@@ -1,6 +1,6 @@
-Place sherpa-onnx runtime models here before bundling.
+Place runtime models here before bundling the app.
 
-Recommended layout:
+Current default layout:
 
 - `asr/sherpa-onnx-streaming-zipformer-ctc-zh-int8-2025-06-30/`
   - `model.int8.onnx`
@@ -12,8 +12,10 @@ Recommended layout:
   - `tokens.txt`
   - `lexicon.txt`
   - `dict/`
-  - `espeak-ng-data/` optional
 
 Notes:
 
-- `zipformer_ctc` is loaded as a streaming ASR recognizer, but the current chat flow still emits final text after each VAD-completed utterance.
+- `models/` is used during development.
+- `resources/models/` is used for packaged builds.
+- Keep both directories in sync if you want the MSI build to ship with the same local models.
+- See the repository README for download commands and official sherpa-onnx links.
