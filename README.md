@@ -6,6 +6,14 @@
 `Fast Avatar AI` 把 `Live2D`、`LLM`、`ASR`、`TTS` 和桌面常驻交互整合到了一起。  
 它不是普通网页聊天窗口，而是一只会说话、会动、能切换模型和角色的桌面虚拟陪伴应用。
 
+## ⬇️ 直接下载
+
+如果你只是想直接体验 Windows 安装版，而不是自己从源码构建，可以直接下载已经打好的 Release：
+
+- [Fast Avatar AI v0.1.0](https://github.com/homui/fast_avatar_ai/releases/tag/v0.1.0)
+
+进入 Release 页面后，下载其中的 `.msi` 安装包即可。
+
 ## ✨ 项目特点
 
 - ⚡ 低延迟交互：本地 ASR、本地 TTS、流式回复、流式播报，尽量减少中间跳转。
@@ -40,7 +48,7 @@
 - Live2D 角色显示与切换
 - 文本聊天与流式回复
 - 本地 ASR：`zipformer_ctc + silero_vad`
-- 本地 TTS：`sherpa_vits`
+- 本地 TTS：`sherpa_vits (sherpa-onnx-vits-zh-ll)`
 - 在线流式 TTS：`Qwen TTS Realtime`
 - 语义动作映射、口型驱动、空闲动作、点击互动
 - 会话级短期记忆
@@ -78,11 +86,11 @@ fast_avatar_ai/
 - `config/settings.json`：主配置文件
 - `config/characters.json`：角色目录和动作映射配置
 
-## ✅ 当前默认需要的模型
+## ✅ 当前实际支持的本地模型
 
-如果你希望项目开箱可跑，至少需要这 3 份本地模型：
+按当前仓库代码和 `D:\software\fast_avatar_ai\models` 目录，默认只支持这 3 套本地资源：
 
-### 1. ASR
+### 1. ASR：Streaming Zipformer CTC
 
 - 引擎：`zipformer_ctc`
 - 目录：`models/asr/sherpa-onnx-streaming-zipformer-ctc-zh-int8-2025-06-30/`
@@ -90,13 +98,13 @@ fast_avatar_ai/
   - `model.int8.onnx`
   - `tokens.txt`
 
-### 2. VAD
+### 2. VAD：Silero VAD
 
 - 目录：`models/vad/`
 - 关键文件：
   - `silero_vad.int8.onnx`
 
-### 3. TTS
+### 3. TTS：Sherpa VITS
 
 - 引擎：`sherpa_vits`
 - 目录：`models/tts/sherpa-onnx-vits-zh-ll/`
@@ -105,6 +113,19 @@ fast_avatar_ai/
   - `tokens.txt`
   - `lexicon.txt`
   - `dict/`
+  - `phone.fst`
+  - `number.fst`
+  - `date.fst`
+
+也就是说，当前仓库里的“本地语音链路”只围绕下面这组目录工作：
+
+- `models/asr/sherpa-onnx-streaming-zipformer-ctc-zh-int8-2025-06-30/`
+- `models/vad/silero_vad.int8.onnx`
+- `models/tts/sherpa-onnx-vits-zh-ll/`
+
+如果你不使用本地 TTS，也可以切到在线：
+
+- `tts.engine = "qwen_realtime"`
 
 打包时还需要把同样内容同步到：
 
@@ -114,11 +135,11 @@ fast_avatar_ai/
 
 ## ⬇️ 模型下载方法
 
-当前仓库默认模型都来自 sherpa-onnx 官方预训练模型：
+当前 README 只写这套仓库实际保留、并已经适配好的模型：
 
-- ASR 模型列表：[sherpa-onnx Pretrained ASR Models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html)
-- 在线 CTC 模型说明：[Online CTC Models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-ctc/zipformer-ctc-models.html)
-- TTS 模型列表：[sherpa-onnx TTS Models](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/index.html)
+- ASR 总览：[sherpa-onnx Pretrained ASR Models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html)
+- Streaming Zipformer CTC：[Online CTC Models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-ctc/zipformer-ctc-models.html)
+- TTS 总览：[sherpa-onnx TTS Models](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/index.html)
 - VITS 模型说明：[VITS TTS Models](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/vits.html)
 
 ### PowerShell 下载示例
@@ -136,7 +157,7 @@ New-Item -ItemType Directory -Force -Path .\resources\models\tts | Out-Null
 New-Item -ItemType Directory -Force -Path .\resources\models\vad | Out-Null
 ```
 
-#### 下载 ASR
+#### 下载 ASR：zipformer_ctc
 
 ```powershell
 curl.exe -L -o .\models\asr\zipformer-ctc-zh.tar.bz2 `
@@ -148,7 +169,7 @@ Copy-Item .\models\asr\sherpa-onnx-streaming-zipformer-ctc-zh-int8-2025-06-30 `
   .\resources\models\asr\ -Recurse -Force
 ```
 
-#### 下载 VAD
+#### 下载 VAD：silero_vad
 
 ```powershell
 curl.exe -L -o .\models\vad\silero_vad.int8.onnx `
@@ -157,7 +178,7 @@ curl.exe -L -o .\models\vad\silero_vad.int8.onnx `
 Copy-Item .\models\vad\silero_vad.int8.onnx .\resources\models\vad\ -Force
 ```
 
-#### 下载 TTS
+#### 下载 TTS：sherpa-onnx-vits-zh-ll
 
 ```powershell
 curl.exe -L -o .\models\tts\vits-zh-ll.tar.bz2 `
@@ -170,7 +191,7 @@ Copy-Item .\models\tts\sherpa-onnx-vits-zh-ll .\resources\models\tts\ -Recurse -
 
 ## 🌐 可选在线 TTS
 
-当前还支持：
+除了本地 `sherpa_vits`，当前还支持：
 
 - `Qwen TTS Realtime`
 
@@ -205,7 +226,7 @@ npm install
 
 ### 2. 准备模型
 
-把上面的 3 套模型下载到：
+把上面的 3 套本地模型下载到：
 
 - `models/`
 
@@ -252,6 +273,10 @@ cargo tauri build
 产物通常位于：
 
 - `src-tauri/target/release/bundle/msi/`
+
+如果你不想自己构建，也可以直接下载已经发布的安装包：
+
+- [GitHub Release: v0.1.0](https://github.com/homui/fast_avatar_ai/releases/tag/v0.1.0)
 
 注意：
 
@@ -309,7 +334,18 @@ cargo tauri build
 
 这样可以把“开发替换模型”和“安装版分发模型”区分开。
 
-### 3. 为什么某些 VTS 模型显示不完整
+### 3. 当前到底支持哪些语音模型
+
+当前仓库里已经接好、并且 README 明确覆盖的只有：
+
+- 本地 ASR：`zipformer_ctc`
+- 本地 VAD：`silero_vad`
+- 本地 TTS：`sherpa_vits`
+- 在线 TTS：`qwen_realtime`
+
+如果你要继续接新的 ASR 或 TTS，请以文档和代码为准，不要直接假设 sherpa-onnx 里的所有模型都能即插即用。
+
+### 4. 为什么某些 VTS 模型显示不完整
 
 因为很多 VTS 模型依赖：
 
