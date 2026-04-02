@@ -4,24 +4,48 @@
 > 你可以把它理解成一套可扩展的 AI 女友 / AI 桌宠框架 💗
 
 `Fast Avatar AI` 把 `Live2D`、`LLM`、`ASR`、`TTS` 和桌面常驻交互整合到了一起。  
-它不是普通网页聊天窗口，而是一只会说话、会动、能切换模型和角色的桌面虚拟陪伴应用。
+它不是普通网页聊天窗口，而是一只会说话、会动、能切换角色和模型、支持语音对话的桌面虚拟陪伴应用。
 
 ## ⬇️ 直接下载
 
-如果你只是想直接体验 Windows 安装版，而不是自己从源码构建，可以直接下载已经打好的 Release：
+如果你只是想直接体验 Windows 安装版，而不是自己从源码构建，可以直接下载已经发布的安装包：
 
-- [Fast Avatar AI v0.1.0](https://github.com/homui/fast_avatar_ai/releases/tag/v0.1.0)
+- [GitHub Release: v0.1.0](https://github.com/homui/fast_avatar_ai/releases/tag/v0.1.0)
 
 进入 Release 页面后，下载其中的 `.msi` 安装包即可。
+
+## 🎬 演示视频
+
+- [Bilibili 演示视频](https://www.bilibili.com/video/BV143XkB8ETJ/?spm_id_from=333.1387.homepage.video_card.click)
+
+如果你想先看实际效果、交互方式和桌宠形态，建议先看这个视频。
 
 ## ✨ 项目特点
 
 - ⚡ 低延迟交互：本地 ASR、本地 TTS、流式回复、流式播报，尽量减少中间跳转。
-- 🚀 快速启动：Tauri + 本地静态资源，桌面常驻更轻。
-- 🎙️ 可语音对话：支持语音输入、自动断句、文字与播报联动。
+- 🚀 快速启动：Tauri + 本地静态资源，适合桌面常驻。
+- 🎙️ 可语音对话：支持语音输入、自动断句、语音播报、文字与语音同步。
 - 🎭 Live2D 桌宠：支持动作映射、口型驱动、空闲动作、点击互动。
 - 🔁 多模型适配：LLM / ASR / TTS / Live2D 都可以替换。
 - 🧩 易扩展：文档已拆分，方便继续扩展 ASR、TTS、记忆系统与角色配置。
+
+## 💻 对电脑配置的要求
+
+这是本项目非常重要的一点：
+
+- **本项目可以只用 CPU 部署**
+- **不要求独立 GPU**
+- **不要求高性能电脑**
+- **普通 Windows 办公机、轻薄本、迷你主机也可以运行**
+
+当前默认方案就是 CPU-only：
+
+- 本地 ASR：`zipformer_ctc`
+- 本地 VAD：`silero_vad`
+- 本地 TTS：`sherpa_vits`
+
+如果你的 LLM 走在线接口，或者走外部 Ollama 服务，本机负担会更小。  
+也就是说，这个项目的目标不是“吃满显卡的 AI 工作站”，而是“尽快部署、尽快上手、尽快跑起来”的桌面陪伴应用。
 
 ## 🖼️ 截图
 
@@ -41,7 +65,7 @@
 - 做一个带 Live2D 角色的桌面 AI 陪伴应用
 - 做一个支持语音输入 / 语音播报的 AI 女友项目
 - 做一个本地优先、可快速替换模型和角色的实验平台
-- 做一个可打包成单文件 Windows 桌面应用的桌宠框架
+- 做一个可打包成 Windows 安装包的桌宠框架
 
 当前默认已经打通：
 
@@ -82,7 +106,7 @@ fast_avatar_ai/
 
 - `live2d/`：唯一的 Live2D 资源真源
 - `models/`：开发运行时使用的本地模型目录
-- `resources/models/`：打包进安装包时使用的模型目录
+- `resources/models/`：打包进入安装包时使用的模型目录
 - `config/settings.json`：主配置文件
 - `config/characters.json`：角色目录和动作映射配置
 
@@ -117,25 +141,15 @@ fast_avatar_ai/
   - `number.fst`
   - `date.fst`
 
-也就是说，当前仓库里的“本地语音链路”只围绕下面这组目录工作：
-
-- `models/asr/sherpa-onnx-streaming-zipformer-ctc-zh-int8-2025-06-30/`
-- `models/vad/silero_vad.int8.onnx`
-- `models/tts/sherpa-onnx-vits-zh-ll/`
-
-如果你不使用本地 TTS，也可以切到在线：
+如果你不使用本地 TTS，也可以切换到在线：
 
 - `tts.engine = "qwen_realtime"`
 
-打包时还需要把同样内容同步到：
-
-- `resources/models/asr/...`
-- `resources/models/vad/...`
-- `resources/models/tts/...`
-
 ## ⬇️ 模型下载方法
 
-当前 README 只写这套仓库实际保留、并已经适配好的模型：
+当前 README 只写这套仓库实际保留、并已经适配好的模型。
+
+官方参考链接：
 
 - ASR 总览：[sherpa-onnx Pretrained ASR Models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html)
 - Streaming Zipformer CTC：[Online CTC Models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/online-ctc/zipformer-ctc-models.html)
@@ -216,6 +230,12 @@ Copy-Item .\models\tts\sherpa-onnx-vits-zh-ll .\resources\models\tts\ -Recurse -
 - Rust toolchain
 - Node.js 18+
 
+推荐理解方式：
+
+- **不需要独立 GPU**
+- **CPU 就可以运行**
+- **普通电脑就能很快部署和上手**
+
 ## 🚀 快速开始
 
 ### 1. 安装前端依赖
@@ -277,11 +297,6 @@ cargo tauri build
 如果你不想自己构建，也可以直接下载已经发布的安装包：
 
 - [GitHub Release: v0.1.0](https://github.com/homui/fast_avatar_ai/releases/tag/v0.1.0)
-
-注意：
-
-- 打包版读取的是 `resources/models/`
-- 所以本地模型更换后，需要记得同步 `resources/models/`
 
 ## 🔄 工作方式
 
